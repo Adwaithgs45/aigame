@@ -40,7 +40,6 @@ const leaderboardSection = document.getElementById('leaderboard');
 
 const uidInput = document.getElementById('uid');
 const loginError = document.getElementById('loginError');
-const submitError = document.getElementById('submitError'); // Create if needed in HTML
 const quizForm = document.getElementById('quizForm');
 const timerDisplay = document.getElementById('timer');
 const scoreDisplay = document.getElementById('scoreDisplay');
@@ -49,7 +48,6 @@ const leaderboardList = document.getElementById('leaderboardList');
 document.getElementById('startBtn').addEventListener('click', startQuiz);
 document.getElementById('submitBtn').addEventListener('click', submitQuiz);
 document.getElementById('leaderboardBtn').addEventListener('click', showLeaderboard);
-document.getElementById('restartBtn').addEventListener('click', restart);
 document.getElementById('restartFromLeaderboardBtn').addEventListener('click', restart);
 
 function startQuiz() {
@@ -58,6 +56,13 @@ function startQuiz() {
   // Check UID format: 6 digit number only
   if (!/^\d{6}$/.test(uid)) {
     loginError.textContent = "UID must be exactly 6 digits (numbers only).";
+    return;
+  }
+
+  // Check if UID already used
+  const savedResults = JSON.parse(localStorage.getItem('quizResults') || '{}');
+  if (savedResults[uid]) {
+    loginError.textContent = "This UID has already completed the quiz and cannot retake it.";
     return;
   }
 
@@ -153,16 +158,8 @@ function submitQuiz() {
   const elapsedTime = Math.round((Date.now() - quizStartTimestamp) / 1000);
 
   const savedResults = JSON.parse(localStorage.getItem('quizResults') || '{}');
-  const prevAttempt = savedResults[uid];
 
-  // If previous attempt exists and time is less or equal, block update
-  if (prevAttempt && prevAttempt.time <= elapsedTime) {
-    alert(`You previously completed the quiz faster (${formatTime(prevAttempt.time)}). Your new time: ${formatTime(elapsedTime)}. Try again to beat your best time!`);
-    restart();
-    return;
-  }
-
-  // Save or update the score and time for this UID
+  // Save the score and time for this UID
   savedResults[uid] = { score, time: elapsedTime };
   localStorage.setItem('quizResults', JSON.stringify(savedResults));
 
@@ -181,49 +178,40 @@ function showLeaderboard() {
   resultSection.classList.add('hidden');
   leaderboardSection.classList.remove('hidden');
 
-  leaderboardList.innerHTML = "";
-
   const savedResults = JSON.parse(localStorage.getItem('quizResults') || '{}');
-  const sortedEntries = Object.entries(savedResults)
-    .sort((a, b) => {
-      // Sort by score DESC, then time ASC (better score, then faster time)
-      if (b[1].score !== a[1].score) {
-        return b[1].score - a[1].score;
-      }
-      return a[1].time - b[1].time;
-    })
-    .slice(0, 10); // top 10
 
-  if (sortedEntries.length === 0) {
-    leaderboardList.innerHTML = "<li>No results yet.</li>";
-    return;
-  }
+  // Convert object to array and sort by score desc and time asc
+  const leaderboard = Object.entries(savedResults).map(([uid, data]) => ({
+    uid,
+    score: data.score,
+    time: data.time
+  })).sort((a, b) => {
+    if (b.score === a.score) {
+      return a.time - b.time;
+    }
+    return b.score - a.score;
+  }).slice(0, 10);
 
-  sortedEntries.forEach(([uid, data]) => {
-    const li = document.createElement('li');
-    li.textContent = `UID: ${uid} — Score: ${data.score} / ${selectedQuestions.length} — Time: ${formatTime(data.time)}`;
-    leaderboardList.appendChild(li);
-  });
-}
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s < 10 ? '0' : ''}${s}`;
+  leaderboardList.innerHTML = leaderboard.map(entry =>
+    `<li>UID: ${entry.uid} - Score: ${entry.score} - Time: ${formatTime(entry.time)}</li>`
+  ).join("");
 }
 
 function restart() {
-  clearInterval(timerInterval);
-
+  // Clear current UID
   localStorage.removeItem('currentUID');
-
-  leaderboardSection.classList.add('hidden');
-  resultSection.classList.add('hidden');
-  quizSection.classList.add('hidden');
-  loginSection.classList.remove('hidden');
-
+  // Reset fields and UI
   uidInput.value = "";
   loginError.textContent = "";
-  quizForm.innerHTML = "";
-  timerDisplay.textContent = "Time Left: 10:00";
+
+  quizSection.classList.add('hidden');
+  resultSection.classList.add('hidden');
+  leaderboardSection.classList.add('hidden');
+  loginSection.classList.remove('hidden');
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
