@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Quiz</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Login Section -->
+    <section id="login" class="card">
+      <h2>Welcome to AI Quiz</h2>
+      <input type="text" id="uid" placeholder="Enter your UID" autocomplete="off" />
+      <p id="loginError" class="error"></p>
+      <button id="startBtn">Start Quiz</button>
+    </section>
+
+    <!-- Quiz Section -->
+    <section id="quiz" class="card hidden">
+      <div class="header">
+        <h2>Answer the questions</h2>
+        <div id="timer">Time Left: 10:00</div>
+      </div>
+      <form id="quizForm" class="quiz-form"></form>
+      <button id="submitBtn" class="btn-primary">Submit Quiz</button>
+    </section>
+
+    <!-- Result Section -->
+    <section id="result" class="card hidden">
+      <h2>Quiz Completed!</h2>
+      <p>Your Score: <span id="scoreDisplay"></span></p>
+      <button id="leaderboardBtn" class="btn-primary">View Leaderboard</button>
+      <button id="restartBtn" class="btn-secondary">Restart Quiz</button>
+    </section>
+
+    <!-- Leaderboard Section -->
+    <section id="leaderboard" class="card hidden">
+      <h2>Leaderboard - Top 10</h2>
+      <ol id="leaderboardList" class="leaderboard-list"></ol>
+      <button id="restartFromLeaderboardBtn" class="btn-secondary">Back to Start</button>
+    </section>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
