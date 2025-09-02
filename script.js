@@ -5,213 +5,227 @@ const allQuestions = [
   { question: "What is Machine Learning?", options: ["Machines learning to dance", "A subset of AI where machines learn from data", "Learning how to operate machines", "A type of hardware"], answer: "A subset of AI where machines learn from data" },
   { question: "Which of the following is a real AI chatbot?", options: ["AlphaChat", "NeuralPal", "ChatGPT", "BotMania"], answer: "ChatGPT" },
   { question: "What does NLP stand for?", options: ["Neural Link Processing", "Natural Language Processing", "Network Level Programming", "Normal Learning Protocol"], answer: "Natural Language Processing" },
-  { question: "What is the Turing Test?", options: ["A math test", "A way to determine AI intelligence", "A code review process", "None of the above"], answer: "A way to determine AI intelligence" },
-  { question: "Which AI model is used in self-driving cars?", options: ["CNN", "RNN", "Decision Trees", "Naive Bayes"], answer: "CNN" },
-  { question: "Which company developed ChatGPT?", options: ["Google", "Meta", "OpenAI", "Amazon"], answer: "OpenAI" },
-  { question: "What is supervised learning?", options: ["AI learning without data", "Learning from labeled data", "Learning through images", "Self learning"], answer: "Learning from labeled data" },
-  { question: "What is reinforcement learning?", options: ["Learning via punishments and rewards", "Learning from images", "Unsupervised learning", "None"], answer: "Learning via punishments and rewards" },
-  { question: "Which of the following is NOT an AI application?", options: ["Face detection", "Spam filtering", "WordPad", "Voice assistants"], answer: "WordPad" },
-  { question: "What is overfitting in AI?", options: ["Model fits too well to training data", "Model performs badly", "Training fails", "Under-optimization"], answer: "Model fits too well to training data" },
-  { question: "What is an artificial neural network inspired by?", options: ["Bones", "Blood", "Human brain", "Robots"], answer: "Human brain" },
-  { question: "GANs are used for?", options: ["Generating fake data", "Sorting data", "Filtering emails", "Cleaning datasets"], answer: "Generating fake data" },
-  { question: "Which one is a Python library for AI?", options: ["NumPy", "Pandas", "TensorFlow", "Bootstrap"], answer: "TensorFlow" },
-  { question: "What is the full form of CNN in AI?", options: ["Convolutional Neural Network", "Central Neural Node", "Control Neural Network", "Computer Network Node"], answer: "Convolutional Neural Network" },
-  { question: "Which is a pre-trained language model?", options: ["GPT-3", "Tensor", "Keras", "Vue"], answer: "GPT-3" },
-  { question: "Which AI system beat humans at Go?", options: ["AlphaGo", "DeepMind", "TensorGo", "IBM Watson"], answer: "AlphaGo" },
-  { question: "Which domain is most impacted by AI?", options: ["Finance", "Healthcare", "Education", "All of the above"], answer: "All of the above" },
-  { question: "AI that mimics human thinking is?", options: ["Strong AI", "Narrow AI", "Weak AI", "Open AI"], answer: "Strong AI" },
-  { question: "Which is an unsupervised learning algorithm?", options: ["K-Means", "Linear Regression", "Logistic Regression", "Decision Trees"], answer: "K-Means" },
-  { question: "Voice assistants use which AI domain?", options: ["Robotics", "Vision", "NLP", "AR"], answer: "NLP" },
-  { question: "What is backpropagation?", options: ["Error correction in neural networks", "Data transfer", "Image processing", "None"], answer: "Error correction in neural networks" },
-  { question: "AI ethics focus on?", options: ["Privacy", "Bias", "Transparency", "All of the above"], answer: "All of the above" }
+  { question: "Which company developed GPT models?", options: ["Google", "OpenAI", "Facebook", "Amazon"], answer: "OpenAI" },
+  { question: "What is 'training data' in AI?", options: ["Data used to teach AI models", "Data to train humans", "Random data", "A dataset to test AI"], answer: "Data used to teach AI models" },
+  { question: "What is reinforcement learning?", options: ["Learning from rewards and punishments", "Learning by watching videos", "Learning via textbooks", "Random learning"], answer: "Learning from rewards and punishments" },
+  { question: "Which of the following is NOT a machine learning algorithm?", options: ["Decision Trees", "Linear Regression", "Bubble Sort", "Neural Networks"], answer: "Bubble Sort" }
 ];
 
-const QUIZ_DURATION = 600; // 10 minutes
-let selectedQuestions = [];
 let timerInterval;
-let timeLeft = QUIZ_DURATION;
-let quizStartTimestamp = 0;
+let timeLeft = 600; // 10 minutes in seconds
 
-// DOM Elements
-const loginSection = document.getElementById('login');
-const quizSection = document.getElementById('quiz');
-const resultSection = document.getElementById('result');
-const leaderboardSection = document.getElementById('leaderboard');
+const loginSection = document.getElementById("loginLeaderboardSection");
+const quizSection = document.getElementById("quiz");
+const resultSection = document.getElementById("result");
+const leaderboardSection = document.getElementById("leaderboard");
 
-const uidInput = document.getElementById('uid');
-const loginError = document.getElementById('loginError');
-const quizForm = document.getElementById('quizForm');
-const timerDisplay = document.getElementById('timer');
-const scoreDisplay = document.getElementById('scoreDisplay');
-const leaderboardList = document.getElementById('leaderboardList');
+const startBtn = document.getElementById("startBtn");
+const submitBtn = document.getElementById("submitBtn");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
+const restartFromLeaderboardBtn = document.getElementById("restartFromLeaderboardBtn");
 
-document.getElementById('startBtn').addEventListener('click', startQuiz);
-document.getElementById('submitBtn').addEventListener('click', submitQuiz);
-document.getElementById('leaderboardBtn').addEventListener('click', showLeaderboard);
-document.getElementById('restartFromLeaderboardBtn').addEventListener('click', restart);
+const uidInput = document.getElementById("uid");
+const loginError = document.getElementById("loginError");
+const timerDisplay = document.getElementById("timer");
+const quizForm = document.getElementById("quizForm");
+const scoreDisplay = document.getElementById("scoreDisplay");
+const leaderboardBody = document.getElementById("leaderboardBody");
+const leaderboardList = document.getElementById("leaderboardList");
 
-function startQuiz() {
-  const uid = uidInput.value.trim();
+let currentUID = null;
 
-  // Check UID format: 6 digit number only
-  if (!/^\d{6}$/.test(uid)) {
-    loginError.textContent = "UID must be exactly 6 digits (numbers only).";
+// Helper: format seconds to MM:SS
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+}
+
+// Load leaderboard from localStorage
+function loadLeaderboard() {
+  const data = localStorage.getItem("quizLeaderboard");
+  return data ? JSON.parse(data) : [];
+}
+
+// Save leaderboard to localStorage
+function saveLeaderboard(data) {
+  localStorage.setItem("quizLeaderboard", JSON.stringify(data));
+}
+
+// Check if UID already attempted quiz
+function hasAttempted(uid) {
+  const leaderboard = loadLeaderboard();
+  return leaderboard.some(entry => entry.uid === uid);
+}
+
+// Render leaderboard table on the first screen
+function renderLeaderboardPanel() {
+  const leaderboard = loadLeaderboard();
+  leaderboard.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
+
+  leaderboardBody.innerHTML = "";
+
+  if (leaderboard.length === 0) {
+    leaderboardBody.innerHTML = `<tr><td colspan="4">No entries yet.</td></tr>`;
     return;
   }
 
-  // Check if UID already used
-  const savedResults = JSON.parse(localStorage.getItem('quizResults') || '{}');
-  if (savedResults[uid]) {
-    loginError.textContent = "This UID has already completed the quiz and cannot retake it.";
-    return;
-  }
-
-  loginError.textContent = "";
-
-  // Select 25 random questions or all if less than 25
-  selectedQuestions = getRandomQuestions(allQuestions, Math.min(25, allQuestions.length));
-
-  quizStartTimestamp = Date.now();
-  timeLeft = QUIZ_DURATION;
-
-  showQuiz();
-  startTimer();
-
-  localStorage.setItem('currentUID', uid);
-}
-
-function getRandomQuestions(arr, num) {
-  const shuffled = arr.slice().sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, num);
-}
-
-function showQuiz() {
-  loginSection.classList.add('hidden');
-  resultSection.classList.add('hidden');
-  leaderboardSection.classList.add('hidden');
-  quizSection.classList.remove('hidden');
-
-  quizForm.innerHTML = "";
-
-  selectedQuestions.forEach((q, idx) => {
-    const questionDiv = document.createElement('div');
-
-    let optionsHTML = q.options.map(option =>
-      `<label>
-        <input type="radio" name="q${idx}" value="${option}" required />
-        ${option}
-      </label>`
-    ).join("");
-
-    questionDiv.innerHTML = `<p><strong>${idx + 1}. ${q.question}</strong></p>${optionsHTML}`;
-    quizForm.appendChild(questionDiv);
+  leaderboard.forEach((entry, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${entry.uid}</td>
+      <td>${entry.score}</td>
+      <td>${formatTime(entry.timeTaken)}</td>
+    `;
+    leaderboardBody.appendChild(tr);
   });
-
-  // Disable copy/paste
-  disableCopyPaste(quizForm);
 }
 
-function disableCopyPaste(element) {
-  element.addEventListener('copy', e => e.preventDefault());
-  element.addEventListener('paste', e => e.preventDefault());
+// Render leaderboard in leaderboard section (top 10)
+function renderLeaderboardFull() {
+  const leaderboard = loadLeaderboard();
+  leaderboard.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
+
+  leaderboardList.innerHTML = "";
+
+  const top10 = leaderboard.slice(0, 10);
+
+  if (top10.length === 0) {
+    leaderboardList.innerHTML = `<tr><td colspan="4">No entries yet.</td></tr>`;
+    return;
+  }
+
+  top10.forEach((entry, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${entry.uid}</td>
+      <td>${entry.score}</td>
+      <td>${formatTime(entry.timeTaken)}</td>
+    `;
+    leaderboardList.appendChild(tr);
+  });
 }
 
+// Show section by id, hide others
+function showSection(section) {
+  [loginSection, quizSection, resultSection, leaderboardSection].forEach(sec => {
+    if (sec === section) sec.classList.remove("hidden");
+    else sec.classList.add("hidden");
+  });
+}
+
+// Start countdown timer
 function startTimer() {
-  updateTimerDisplay();
+  timeLeft = 600;
+  timerDisplay.textContent = `Time Left: ${formatTime(timeLeft)}`;
 
   timerInterval = setInterval(() => {
     timeLeft--;
+    timerDisplay.textContent = `Time Left: ${formatTime(timeLeft)}`;
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       submitQuiz();
     }
-    updateTimerDisplay();
   }, 1000);
 }
 
-function updateTimerDisplay() {
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-  timerDisplay.textContent = `Time Left: ${minutes}:${formattedSeconds}`;
+// Build quiz questions dynamically
+function buildQuiz() {
+  quizForm.innerHTML = "";
+  allQuestions.forEach((q, i) => {
+    const div = document.createElement("div");
+
+    let optionsHTML = q.options.map(opt => `
+      <label>
+        <input type="radio" name="q${i}" value="${opt}" />
+        ${opt}
+      </label>
+    `).join("");
+
+    div.innerHTML = `<p>${i + 1}. ${q.question}</p>${optionsHTML}`;
+    quizForm.appendChild(div);
+  });
 }
 
+// Calculate score
+function calculateScore() {
+  let score = 0;
+  allQuestions.forEach((q, i) => {
+    const selected = quizForm.querySelector(`input[name="q${i}"]:checked`);
+    if (selected && selected.value === q.answer) {
+      score++;
+    }
+  });
+  return score;
+}
+
+// Submit quiz
 function submitQuiz() {
   clearInterval(timerInterval);
+  const score = calculateScore();
 
-  const uid = localStorage.getItem('currentUID');
-  if (!uid) {
-    alert("No UID found. Please restart the quiz.");
-    restart();
+  // Save result to leaderboard
+  const leaderboard = loadLeaderboard();
+  leaderboard.push({
+    uid: currentUID,
+    score,
+    timeTaken: 600 - timeLeft,
+    timestamp: Date.now()
+  });
+  saveLeaderboard(leaderboard);
+
+  scoreDisplay.textContent = `${score} / ${allQuestions.length}`;
+
+  showSection(resultSection);
+}
+
+// Validate UID
+function validateUID(uid) {
+  if (!/^\d{6}$/.test(uid)) {
+    loginError.textContent = "UID must be exactly 6 digits.";
+    return false;
+  }
+  if (hasAttempted(uid)) {
+    loginError.textContent = "This UID has already taken the quiz.";
+    return false;
+  }
+  loginError.textContent = "";
+  return true;
+}
+
+// Event Listeners
+
+startBtn.addEventListener("click", () => {
+  const uid = uidInput.value.trim();
+  if (!validateUID(uid)) {
     return;
   }
+  currentUID = uid;
+  buildQuiz();
+  showSection(quizSection);
+  startTimer();
+});
 
-  const formData = new FormData(quizForm);
-  let score = 0;
+submitBtn.addEventListener("click", () => {
+  submitQuiz();
+});
 
-  selectedQuestions.forEach((q, idx) => {
-    const userAnswer = formData.get(`q${idx}`);
-    if (userAnswer === q.answer) score++;
-  });
+leaderboardBtn.addEventListener("click", () => {
+  renderLeaderboardFull();
+  showSection(leaderboardSection);
+});
 
-  // Calculate elapsed time in seconds
-  const elapsedTime = Math.round((Date.now() - quizStartTimestamp) / 1000);
-
-  const savedResults = JSON.parse(localStorage.getItem('quizResults') || '{}');
-
-  // Save the score and time for this UID
-  savedResults[uid] = { score, time: elapsedTime };
-  localStorage.setItem('quizResults', JSON.stringify(savedResults));
-
-  showResult(score, elapsedTime);
-}
-
-function showResult(score, time) {
-  quizSection.classList.add('hidden');
-  resultSection.classList.remove('hidden');
-  leaderboardSection.classList.add('hidden');
-
-  scoreDisplay.textContent = `${score} / ${selectedQuestions.length} (Time: ${formatTime(time)})`;
-}
-
-function showLeaderboard() {
-  resultSection.classList.add('hidden');
-  leaderboardSection.classList.remove('hidden');
-
-  const savedResults = JSON.parse(localStorage.getItem('quizResults') || '{}');
-
-  // Convert object to array and sort by score desc and time asc
-  const leaderboard = Object.entries(savedResults).map(([uid, data]) => ({
-    uid,
-    score: data.score,
-    time: data.time
-  })).sort((a, b) => {
-    if (b.score === a.score) {
-      return a.time - b.time;
-    }
-    return b.score - a.score;
-  }).slice(0, 10);
-
-  leaderboardList.innerHTML = leaderboard.map(entry =>
-    `<li>UID: ${entry.uid} - Score: ${entry.score} - Time: ${formatTime(entry.time)}</li>`
-  ).join("");
-}
-
-function restart() {
-  // Clear current UID
-  localStorage.removeItem('currentUID');
-  // Reset fields and UI
+restartFromLeaderboardBtn.addEventListener("click", () => {
   uidInput.value = "";
   loginError.textContent = "";
+  renderLeaderboardPanel();
+  showSection(loginSection);
+});
 
-  quizSection.classList.add('hidden');
-  resultSection.classList.add('hidden');
-  leaderboardSection.classList.add('hidden');
-  loginSection.classList.remove('hidden');
-}
-
-function formatTime(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-}
+// On page load
+window.addEventListener("load", () => {
+  renderLeaderboardPanel();
+  showSection(loginSection);
+});
