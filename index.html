@@ -10,12 +10,31 @@
 
   <div class="container">
 
-    <!-- Login Section -->
-    <section id="login" class="card">
+    <!-- Login & Leaderboard Section -->
+    <section id="loginLeaderboardSection" class="card">
       <h2>Welcome to AI Quiz</h2>
-      <input type="text" id="uid" placeholder="Enter your UID" autocomplete="off" />
+
+      <label for="uid" class="uid-label">Enter your UID</label>
+      <input type="text" id="uid" placeholder="6-digit UID" autocomplete="off" maxlength="6" />
       <p id="loginError" class="error"></p>
-      <button id="startBtn">Start Quiz</button>
+      <button id="startBtn" class="btn-primary">Enter your UID</button>
+
+      <div class="leaderboard-panel">
+        <h3>Current Leaderboard</h3>
+        <table id="leaderboardTable" class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>UID</th>
+              <th>Score</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <!-- Filled dynamically -->
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- Quiz Section -->
@@ -33,13 +52,22 @@
       <h2>Quiz Completed!</h2>
       <p>Your Score: <span id="scoreDisplay"></span></p>
       <button id="leaderboardBtn" class="btn-primary">View Leaderboard</button>
-      <!-- Restart Quiz button removed -->
     </section>
 
     <!-- Leaderboard Section -->
     <section id="leaderboard" class="card hidden">
       <h2>Leaderboard - Top 10</h2>
-      <ol id="leaderboardList" class="leaderboard-list"></ol>
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>UID</th>
+            <th>Score</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardList"></tbody>
+      </table>
       <button id="restartFromLeaderboardBtn" class="btn-secondary">Back to Start</button>
     </section>
 
