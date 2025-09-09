@@ -42,7 +42,7 @@ function formatTime(s) {
 }
 
 // Load leaderboard from localStorage
-const API_URL = "https://quizapp-azgrh3d4fhddbeaz.westus2-01.azurewebsites.net/api/leaderboard";
+const API_URL = "https://quizapp-azgrh3d4fhddbeaz.westus2-01.azurewebsites.net/api/leaderboard/get";
 const leaderboardTableBody = document.getElementById("leaderboardTableBody");
 
 function formatTime(seconds) {
@@ -91,7 +91,7 @@ loadLeaderboard();
 // Save leaderboard 
 async function saveLeaderboard(entry) {
   try {
-    const response = await fetch("https://quizapp-azgrh3d4fhddbeaz.westus2-01.azurewebsites.net/api/leaderboard", {
+    const response = await fetch("https://quizapp-azgrh3d4fhddbeaz.westus2-01.azurewebsites.net/api/leaderboard/add", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -287,5 +287,6 @@ window.addEventListener("load", () => {
   renderLeaderboardPanel();
   showSection(loginSection);
 });
+
 
 
