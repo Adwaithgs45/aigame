@@ -47,10 +47,27 @@ function loadLeaderboard() {
   return data ? JSON.parse(data) : [];
 }
 
-// Save leaderboard to localStorage
-function saveLeaderboard(data) {
-  localStorage.setItem("quizLeaderboard", JSON.stringify(data));
+// Save leaderboard 
+async function saveLeaderboard(entry) {
+  try {
+    const response = await fetch("https://quizapp-azgrh3d4fhddbeaz.westus2-01.azurewebsites.net/api/leaderboard", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(entry)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save leaderboard entry.");
+    }
+
+    console.log("Saved to backend.");
+  } catch (error) {
+    console.error("Error saving to database:", error);
+  }
 }
+
 
 // Check if UID already attempted quiz
 function hasAttempted(uid) {
@@ -229,3 +246,4 @@ window.addEventListener("load", () => {
   renderLeaderboardPanel();
   showSection(loginSection);
 });
+
