@@ -19,23 +19,26 @@
       <p id="loginError" class="error"></p>
       <button id="startBtn" class="btn-primary">Start the Quiz</button>
 
-      <div class="leaderboard-panel">
-        <h3>Current Leaderboard</h3>
-        <table id="leaderboardTable" class="leaderboard-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>UID</th>
-              <th>Score</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboardBody">
-            <!-- Filled dynamically -->
-          </tbody>
-        </table>
-      </div>
+      <section id="leaderboardSection">
+  <h2>Top 10 Leaderboard</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>UID</th>
+        <th>Score</th>
+        <th>Time Taken</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardTableBody">
+      <tr><td colspan="4">Loading...</td></tr>
+    </tbody>
+  </table>
+</section>
+
     </section>
+
+    
 
     <!-- Quiz Section -->
     <section id="quiz" class="card hidden">
@@ -76,4 +79,5 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
