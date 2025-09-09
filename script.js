@@ -42,10 +42,51 @@ function formatTime(s) {
 }
 
 // Load leaderboard from localStorage
-function loadLeaderboard() {
-  const data = localStorage.getItem("quizLeaderboard");
-  return data ? JSON.parse(data) : [];
+const API_URL = "https://quizapp-azgrh3d4fhddbeaz.westus2-01.azurewebsites.net/api/leaderboard";
+const leaderboardTableBody = document.getElementById("leaderboardTableBody");
+
+function formatTime(seconds) {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 }
+
+async function loadLeaderboard() {
+  try {
+    leaderboardTableBody.innerHTML = `<tr><td colspan="4">Loading...</td></tr>`;
+
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error("Failed to fetch leaderboard.");
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+      leaderboardTableBody.innerHTML = `<tr><td colspan="4">No entries yet.</td></tr>`;
+      return;
+    }
+
+    leaderboardTableBody.innerHTML = "";
+
+    data.forEach((entry, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${entry.uid}</td>
+        <td>${entry.score}</td>
+        <td>${formatTime(entry.timeTaken)}</td>
+      `;
+      leaderboardTableBody.appendChild(tr);
+    });
+
+  } catch (error) {
+    console.error("Error loading leaderboard:", error);
+    leaderboardTableBody.innerHTML = `<tr><td colspan="4">Failed to load leaderboard.</td></tr>`;
+  }
+}
+
+// Call this function when the leaderboard section loads
+loadLeaderboard();
+
 
 // Save leaderboard 
 async function saveLeaderboard(entry) {
@@ -246,4 +287,5 @@ window.addEventListener("load", () => {
   renderLeaderboardPanel();
   showSection(loginSection);
 });
+
 
